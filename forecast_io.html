@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="bootstrap-3.3.5-dist/css/bootstrap.min.css">
+    <link href="css/style.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+    <script src="bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
+    <script src="jquery-validation-1.14.0/lib/jquery.js"></script>
+    <script src="jquery-validation-1.14.0/dist/jquery.validate.js"></script>
+<script src="http://momentjs.com/downloads/moment.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.4.1/moment-timezone-with-data.js"></script>
+<script src="js/forecast_js.js"></script> 
+<script>   
+
+      $(document).ready(function() {
+        
+
+
+      	$("#forecast_form").validate( {
+         rules:
+                 {
+                      address: {
+                          required: 
+                            {
+                            depends:function()
+                                {
+                                 $(this).val($.trim($(this).val()));
+                                 return true;
+                                }
+                            }
+                      },
+                     city: {
+                          required: 
+                            {
+                            depends:function()
+                                {
+                                 $(this).val($.trim($(this).val()));
+                                 return true;
+                                }
+                            }
+                      }
+                 },
+            messages:
+                 {
+      			address: "Please enter the street address.",
+      			city: "Please enter the city.",
+                     state: "Please select a state."
+                 },
+                 errorElement: "p",
+                 errorClass:"error-block",
+                                     
+         submitHandler: 
+                 function() {  
+            $("#tab1").addClass('active');						
+        $("#now").addClass('active');
+        $("#tab2").removeClass('active');						         $("#next24hrs").removeClass('active');
+        $("#tab3").removeClass('active');							    $("#next7days").removeClass('active');
+
+// Create variables that will be sent in a URL string to mail.php
+      var address = $('input#address').val();
+      var city = $('input#city').val();
+      var state = $( "#state" ).val();
+      var state_long = $('#state :selected').text();
+      var degree = "";
+      var selected = $("input[type='radio'][name='degree']:checked");
+      if (selected.length > 0) {
+      degree = selected.val();
+      }
+                     
+var dataString = 'address=' + address + '&city='+ city + '&state=' + state + '&degree=' + degree;
+      
+ // The AJAX
+      $.ajax({  
+      type: 'GET',
+               dataType: "json",
+      url: '/index.php',
+      data: dataString,
+      success: function(data) {
+      var timezone =  data.timezone; 
+              //Get weather data
+        var lat =  data.latitude; 
+        var lon =  data.longitude;
+          generate_results_tab1(data,degree,city,state,state_long,timezone);
+      generate_results_tab2(data,degree,timezone);  
+      get_open_streetmap(lat,lon);
+      generate_results_tab3(data,degree,city,timezone);  
+     
+      },
+      error: function (request, error) {
+                 //if(error=="parseerror")
+          reset_form();
+                document.getElementById("error").style.display="";
+             }
+          
+          
+             });
+      
+      return false;
+        
+                   }
+         });
+         });
+    </script>
+    <title>Assignment 8</title>
+  </head>
+  <body>
+     
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '738903809549719',
+      xfbml      : true,
+      version    : 'v2.5'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+        
+
+        
+</script>  
+      
+      
+      
+    <div id="main_container" class="container">
+      <h1 class="text-center">Forecast Search</h1>
+      <div id="search_container" class="well">
+        <form id="forecast_form">
+          <div class="row">
+            <div class="form-group col-md-3">
+              <label for="address" class="required">Street Address</label>
+              <input type="text" class="form-control" id="address" name="address" placeholder="Enter your street address"  > 
+            </div>
+            <div class="form-group col-md-2">
+              <label for="city" class="has-error required" >City</label>
+              <input type="text" class="form-control" size="23%" id="city" placeholder="Enter the city name" name="city" >
+            </div>
+            <div class="form-group col-md-2">
+              <label for="state" class="required" >State</label>
+              <select class="form-control" id="state" name="state" required>
+                <option value="" >Select your state...</option>
+                <option value="AL" >Alabama</option>
+                <option value="AK">Alaska</option>
+                <option value="AZ">Arizona</option>
+                <option value="AR">Arkansas</option>
+                <option value="CA">California</option>
+                <option value="CO">Colorado</option>
+                <option value="CT">Connecticut</option>
+                <option value="DE">Delaware</option>
+                <option value="DC">District Of Columbia</option>
+                <option value="FL">Florida</option>
+                <option value="GA">Georgia</option>
+                <option value="HI">Hawaii</option>
+                <option value="ID">Idaho</option>
+                <option value="IL">Illinois</option>
+                <option value="IN">Indiana</option>
+                <option value="IA">Iowa</option>
+                <option value="KS">Kansas</option>
+                <option value="KY">Kentucky</option>
+                <option value="LA">Louisiana</option>
+                <option value="ME">Maine</option>
+                <option value="MD">Maryland</option>
+                <option value="MA">Massachusetts</option>
+                <option value="MI">Michigan</option>
+                <option value="MN">Minnesota</option>
+                <option value="MS">Mississippi</option>
+                <option value="MO">Missouri</option>
+                <option value="MT">Montana</option>
+                <option value="NE">Nebraska</option>
+                <option value="NV">Nevada</option>
+                <option value="NH">New Hampshire</option>
+                <option value="NJ">New Jersey</option>
+                <option value="NM">New Mexico</option>
+                <option value="NY">New York</option>
+                <option value="NC">North Carolina</option>
+                <option value="ND">North Dakota</option>
+                <option value="OH">Ohio</option>
+                <option value="OK">Oklahoma</option>
+                <option value="OR">Oregon</option>
+                <option value="PA">Pennsylvania</option>
+                <option value="RI">Rhode Island</option>
+                <option value="SC">South Carolina</option>
+                <option value="SD">South Dakota</option>
+                <option value="TN">Tennessee</option>
+                <option value="TX">Texas</option>
+                <option value="UT">Utah</option>
+                <option value="VT">Vermont</option>
+                <option value="VA">Virginia</option>
+                <option value="WA">Washington</option>
+                <option value="WV">West Virginia</option>
+                <option value="WI">Wisconsin</option>
+                <option value="WY">Wyoming</option>
+              </select>
+            </div>
+            <div class="form-group col-md-2">
+              <label for="degree" class="required">Degree</label>   
+              <label class="radio-inline">
+              <input type="radio" name="degree" id="degree_us" value="us" checked>
+              Fahrenheit
+              </label> 
+              <label class="radio-inline">
+              <input type="radio" name="degree" id="degree_si" value="si">
+              Celsius
+              </label>
+            </div>
+            <div class="form-group col-md-3 text-right">
+              <button name="submit" type="submit" class="btn btn-primary margintop" ><span class="glyphicon glyphicon-search">&nbsp;</span>Search</button>
+              <button id="reset" type="reset" class="btn margintop" onclick="reset_form()"><span class="glyphicon glyphicon-refresh">&nbsp;</span>Clear</button>
+            </div>
+          </div>
+          <div class="row text-right" id="poweredby">
+            <div class="col-md-4 col-md-offset-8" id="poweredby1">
+              <label>Powered by:</label>
+              <a href="http://forecast.io." target="_blank"><img src="images/forecast_logo.png" id="forecast_logo"></img></a>
+            </div>
+          </div>
+        </form>
+      </div>
+      <hr>
+<div id="error" class="bg-danger text-danger text-center" style="display:none">No weather information found for this address.</div>      
+<div id="result_container" style="display:none">
+
+<div class="row" >
+    <div class="col-md-12">
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li id ="tab1"  role="presentation" class="active"><a href="#now" aria-controls="now" role="tab" data-toggle="tab">Right Now</a></li>
+    <li id ="tab2" role="presentation"><a href="#next24hrs" aria-controls="next24hrs" role="tab" data-toggle="tab">Next 24 Hours</a></li>
+    <li id ="tab3" role="presentation"><a href="#next7days" aria-controls="next7days" role="tab" data-toggle="tab">Next 7 days</a></li>
+  </ul>
+</div>
+</div>
+     
+
+<!-- Tab panes -->
+<div class="tab-content">
+<div role="tabpanel" class="tab-pane active" id="now">
+<div  class="row">
+      
+<div class="col-md-6"> 
+<div id=top_now class="row">    
+<div class="col-md-6  text-center">
+          <img class="align" src="/images/clear.png" id="icon" ></img>
+      </div>
+<div class="col-md-6 text-center" >
+          <p  id=summary_display></p>
+          <p  id=temperature></p>
+    <p  id=minmaxTemperature>
+        <span id=mintemp></span>|
+        <span id=maxtemp></span>
+    <span class=pull-right><img class="img-rounded" id=displayfacebook src= "/images/fb_icon.png" onclick=" javascript:facebookfunction()"></img>
+      </span></p>
+    <div id="name" style="display:none"></div>
+    <div id="description" style="display:none"></div>
+
+   </div> 
+</div>
+<div class="row">      
+<div class="col-md-12">      
+    <table id="tb_pane1" class="table table-striped">
+    <tr><th>Precipitation </th><td id="preci"></td></tr>
+    <tr><th>Chance of Rain</th><td id="rain"></td></tr>
+    <tr><th>Wind Speed</th><td id="wind"></td></tr>
+    <tr><th>Dew Point</th><td id="dew"></td></tr>
+    <tr><th>Humidity</th><td id="humid"></td></tr>
+    <tr><th>Visibility</th><td id="visi"></td></tr>
+    <tr><th>Sunrise</th><td id="sunrise"></td></tr>
+    <tr><th>Sunset</th><td id="sunset"></td></tr>  
+    </table>
+</div>
+</div>
+</div>   
+
+<div class="col-md-6" id="openstreetmap">
+    <div id="basicMap"></div>
+</div>
+ </div>   
+    
+</div>   
+    
+<div role="tabpanel" class="tab-pane" id="next24hrs"> 
+    <div class="row">    
+    <div class="col-md-12" id=results_table2></div>         
+    </div>
+</div>
+<div role="tabpanel" class="tab-pane" id="next7days">
+    
+<div class="row " id="results_table3">    
+    <div id="day1" class="col-md-offset-2 col-md-1 text-center"></div>  
+    <div id="day2" class="col-md-1 text-center"></div>  
+    <div id="day3" class="col-md-1 text-center"></div>  
+    <div id="day4" class="col-md-1 text-center"></div>  
+    <div id="day5" class="col-md-1 text-center"></div>  
+    <div id="day6" class="col-md-1 text-center"></div>
+    <div id="day7" class="col-md-1 text-center"></div>
+</div>
+
+    <div class="modal fade text-center" id=myModal1 role="dialog"></div>
+<div class="modal fade text-center" id=myModal2 role="dialog"></div>
+<div class="modal fade text-center" id=myModal3 role="dialog"></div>
+<div class="modal fade text-center" id=myModal4 role="dialog"></div>
+<div class="modal fade text-center" id=myModal5 role="dialog"></div>
+<div class="modal fade text-center" id=myModal6 role="dialog"></div>
+<div class="modal fade text-center" id=myModal7 role="dialog"></div>
+</div>
+</div>
+
+
+          
+      </div>
+    </div>
+  </body>
+</html>
